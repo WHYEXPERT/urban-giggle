@@ -223,7 +223,22 @@
           <input type="text" id="recipientAccount" placeholder="Numer konta">
           <p>Kwota do przelania:</p>
           <input type="number" id="fromAmount" placeholder="Kwota" step="0.01">
+          <!-- Dodanie opcji wyboru trybu przelewu -->
+          <p>Tryb przelewu:</p>
+          <label>
+            <input type="radio" name="transferType" value="standard" checked> Standardowy
+          </label>
+          <label>
+            <input type="radio" name="transferType" value="natychmiastowy"> Natychmiastowy
+          </label>
           <button id="fromSend">Wyślij</button>
+          <!-- Kontener na progress bar i komunikat -->
+          <div id="transferProgressContainer" style="display:none; margin-top:20px;">
+            <div style="width: 100%; background-color: #ddd; border-radius: 3px;">
+              <div id="transferProgressBar" style="width: 0%; height: 20px; background-color: #35424a; border-radius: 3px;"></div>
+            </div>
+            <p id="transferStatusMessage" style="margin-top: 5px;"></p>
+          </div>
         </div>
       </div>
     </div>
@@ -320,12 +335,13 @@
       amountInput.value = "";
     });
 
-    // Funkcja "Z konta" – odejmuje kwotę od salda i rejestruje przelew
+    // Funkcja "Z konta" – odejmuje kwotę od salda i rejestruje przelew z animowanym progress barem
     document.getElementById('fromSend').addEventListener('click', () => {
       const recipientNameInput = document.getElementById('recipientName');
       const recipientAccountInput = document.getElementById('recipientAccount');
       const amountInput = document.getElementById('fromAmount');
       const amount = parseFloat(amountInput.value);
+
       if (isNaN(amount) || amount <= 0) {
         alert("Wprowadź poprawną kwotę!");
         return;
@@ -334,22 +350,61 @@
         alert("Niewystarczające środki na koncie!");
         return;
       }
-      // Użyj podanej nazwy, lub losuj jeśli pusta (punkt 7)
-      let recipientName = recipientNameInput.value.trim();
-      if (!recipientName) {
-        recipientName = "@user" + Math.floor(Math.random() * 1000);
-      }
-      // Losowanie numeru konta, jeśli nie podano
-      let recipientAccount = recipientAccountInput.value.trim();
-      if (!recipientAccount) {
-        recipientAccount = Math.floor(1000000000 + Math.random() * 9000000000);
-      }
-      balance -= amount;
-      updateBalance();
-      addTransaction(`Przelew z konta: -${amount.toFixed(2)} EUR do ${recipientAccount} (${recipientName})`, -amount);
-      recipientNameInput.value = "";
-      recipientAccountInput.value = "";
-      amountInput.value = "";
+      
+      // Odczytaj wybrany tryb przelewu
+      const transferType = document.querySelector('input[name="transferType"]:checked').value;
+      
+      // Wyłącz przycisk, aby zapobiec wielokrotnym kliknięciom
+      const sendButton = document.getElementById('fromSend');
+      sendButton.disabled = true;
+      
+      // Pokaż kontener progress baru i ustaw początkowy stan
+      const progressContainer = document.getElementById('transferProgressContainer');
+      const progressBar = document.getElementById('transferProgressBar');
+      const statusMessage = document.getElementById('transferStatusMessage');
+      progressContainer.style.display = "block";
+      progressBar.style.width = "0%";
+      statusMessage.textContent = "Przesyłanie...";
+      
+      let progress = 0;
+      const intervalTime = 100; // 100ms
+      const progressIncrement = 100 / (5000 / intervalTime); // 5 sekund animacji
+      const interval = setInterval(() => {
+        progress += progressIncrement;
+        if (progress >= 100) {
+          progressBar.style.width = "100%";
+          clearInterval(interval);
+          
+          // Po zakończeniu progress baru przetwarzamy przelew:
+          let recipientName = recipientNameInput.value.trim();
+          if (!recipientName) {
+            recipientName = "@user" + Math.floor(Math.random() * 1000);
+          }
+          let recipientAccount = recipientAccountInput.value.trim();
+          if (!recipientAccount) {
+            recipientAccount = Math.floor(1000000000 + Math.random() * 9000000000);
+          }
+          balance -= amount;
+          updateBalance();
+          addTransaction(`Przelew z konta: -${amount.toFixed(2)} EUR do ${recipientAccount} (${recipientName})`, -amount);
+          
+          // Wyświetl komunikat w zależności od trybu przelewu
+          if (transferType === "standard") {
+            statusMessage.textContent = "Wysłano! Środki Przyjdą w ciągu 1-3 dni roboczych";
+          } else {
+            statusMessage.textContent = "Wysłano! Środki Przyjdą w ciągu 5-30 minut";
+          }
+          
+          // Po kilku sekundach ukrywamy pasek i odblokowujemy przycisk
+          setTimeout(() => {
+            progressContainer.style.display = "none";
+            sendButton.disabled = false;
+          }, 2000);
+          
+        } else {
+          progressBar.style.width = progress + "%";
+        }
+      }, intervalTime);
     });
 
     updateBalance();
@@ -391,7 +446,6 @@
     // Punkt 3: Wykresy i statystyki – Chart.js do wizualizacji salda
     const ctx = document.getElementById('balanceChart').getContext('2d');
     function updateChart() {
-      // Obliczanie bieżącego salda na podstawie transakcji
       let runningBalance = 1000.00;
       const labels = ["Start"];
       const data = [runningBalance];
