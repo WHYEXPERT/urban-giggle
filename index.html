@@ -2,247 +2,435 @@
 <html lang="pl">
 <head>
   <meta charset="UTF-8">
-  <title>System Bankowy - Symulacja Konta</title>
+  <title>Symulacja Banku - Nowoczesna Strona Banku</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Chart.js for charts -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    /* Ogólne style */
-    body {
-      font-family: 'Arial', sans-serif;
+    /* Reset i podstawowe style */
+    * {
       margin: 0;
       padding: 0;
-      background: #f4f4f4;
+      box-sizing: border-box;
     }
+    body {
+      font-family: 'Arial', sans-serif;
+      background: #f2f2f2;
+      color: #333;
+      line-height: 1.6;
+    }
+    /* Header z nawigacją */
     header {
-      background: #35424a;
+      background: linear-gradient(90deg, #35424a, #2c3e50);
       color: #fff;
-      padding: 10px 20px;
-      text-align: center;
-      position: relative;
+      padding: 15px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
     }
-    /* Personalizacja interfejsu (punkt 6) - wybór motywu */
-    header .theme-selector, header .login-btn {
-      position: absolute;
-      top: 10px;
+    header h1 {
+      font-size: 1.5em;
+      letter-spacing: 1px;
+    }
+    nav ul {
+      list-style: none;
+      display: flex;
+    }
+    nav ul li {
+      margin-left: 20px;
       cursor: pointer;
-      border: none;
+      transition: color 0.3s;
+    }
+    nav ul li:hover {
+      color: #f4f4f4;
+    }
+    /* Kontrolki w headerze: wybór motywu i przycisk logowania */
+    .header-controls {
+      display: flex;
+      align-items: center;
+    }
+    .theme-selector, .login-btn {
+      margin-left: 15px;
       padding: 6px 12px;
-      border-radius: 3px;
-    }
-    header .theme-selector {
-      right: 120px;
-      background: #fff;
-      color: #000;
-    }
-    header .login-btn {
-      right: 10px;
-      background: #e2e2e2;
-      color: #35424a;
-    }
-    .container {
-      width: 90%;
-      max-width: 800px;
-      margin: 20px auto;
-      padding: 20px;
-      background: #fff;
-      border-radius: 5px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-      transition: background 0.5s, color 0.5s;
-    }
-    .tabs {
-      display: flex;
-      justify-content: center;
-      margin-bottom: 20px;
-    }
-    .tab {
-      padding: 10px 20px;
-      margin: 0 5px;
-      cursor: pointer;
-      background: #e2e2e2;
-      border-radius: 5px;
-      transition: background 0.3s, transform 0.3s;
-    }
-    .tab:hover {
-      background: #d1d1d1;
-      transform: scale(1.05);
-    }
-    .tab.active {
-      background: #35424a;
-      color: #fff;
-    }
-    .content {
-      padding: 20px;
-      animation: fadeIn 0.5s;
-    }
-    @keyframes fadeIn {
-      from {opacity: 0;}
-      to {opacity: 1;}
-    }
-    /* Sub-zakładki w "Przelewy" */
-    .sub-tabs {
-      display: flex;
-      justify-content: center;
-      margin-bottom: 20px;
-    }
-    .sub-tab {
-      padding: 8px 16px;
-      margin: 0 5px;
-      cursor: pointer;
-      background: #e2e2e2;
-      border-radius: 5px;
-      transition: background 0.3s, transform 0.3s;
-    }
-    .sub-tab:hover {
-      background: #d1d1d1;
-      transform: scale(1.05);
-    }
-    .sub-tab.active {
-      background: #35424a;
-      color: #fff;
-    }
-    input[type="number"], input[type="text"] {
-      padding: 8px;
-      margin: 5px 0;
-      border: 1px solid #ccc;
-      border-radius: 3px;
-      width: 220px;
-    }
-    button {
-      padding: 8px 16px;
       border: none;
-      background: #35424a;
-      color: #fff;
       border-radius: 3px;
       cursor: pointer;
       transition: background 0.3s;
     }
-    button:hover {
-      background: #2c3e50;
+    .theme-selector {
+      background: #fff;
+      color: #333;
+    }
+    .login-btn {
+      background: #e2e2e2;
+      color: #35424a;
+    }
+    .login-btn:hover {
+      background: #ccc;
+    }
+    /* Główny kontener strony */
+    .container {
+      max-width: 1200px;
+      margin: 20px auto;
+      padding: 20px;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      animation: fadeIn 1s ease-in-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    /* Główne zakładki strony */
+    .main-tabs {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+      border-bottom: 2px solid #ddd;
+    }
+    .main-tab {
+      padding: 10px 20px;
+      margin: 0 10px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.3s;
+    }
+    .main-tab.active {
+      border-bottom: 4px solid #35424a;
+      color: #35424a;
+    }
+    /* Style zawartości poszczególnych sekcji */
+    .section-content {
+      display: none;
+      animation: fadeIn 0.8s ease-in-out;
+    }
+    .section-content.active {
+      display: block;
+    }
+    /* Dashboard */
+    .dashboard {
+      text-align: center;
+    }
+    .dashboard .balance-display {
+      font-size: 2em;
+      margin-bottom: 10px;
     }
     .history {
       margin-top: 20px;
       max-height: 200px;
       overflow-y: auto;
       background: #f9f9f9;
-      padding: 10px;
-      border-radius: 3px;
+      padding: 15px;
+      border-radius: 5px;
       border: 1px solid #ccc;
     }
     .history p {
       margin: 5px 0;
       font-size: 0.9em;
     }
-    /* Modal logowania (punkt 1 - Logowanie/Rejestracja) */
-    .modal {
-      display: none; 
-      position: fixed; 
-      z-index: 1000; 
-      left: 0;
-      top: 0;
-      width: 100%; 
-      height: 100%; 
-      overflow: auto; 
-      background-color: rgba(0,0,0,0.4);
-    }
-    .modal-content {
-      background-color: #fff;
-      margin: 15% auto;
-      padding: 20px;
-      border: 1px solid #888;
-      width: 300px;
-      border-radius: 5px;
-    }
-    .close {
-      color: #aaa;
-      float: right;
-      font-size: 24px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-    /* Wykresy i statystyki (punkt 3) */
     .chart-container {
       width: 100%;
       height: 300px;
       margin-top: 20px;
     }
+    /* Sub-zakładki w sekcji Przelewy */
+    .sub-tabs {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+      border-bottom: 1px solid #ddd;
+    }
+    .sub-tab {
+      padding: 8px 16px;
+      margin: 0 5px;
+      cursor: pointer;
+      transition: background 0.3s, transform 0.3s;
+    }
+    .sub-tab.active {
+      background: #35424a;
+      color: #fff;
+      border-radius: 5px 5px 0 0;
+    }
+    .sub-content {
+      padding: 20px;
+      border: 1px solid #ddd;
+      border-top: none;
+      border-radius: 0 5px 5px 5px;
+    }
+    input[type="number"], input[type="text"], input[type="email"] {
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      width: 100%;
+      max-width: 300px;
+    }
+    button {
+      padding: 10px 20px;
+      border: none;
+      background: #35424a;
+      color: #fff;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background: #2c3e50;
+    }
+    /* Progress bar w przelewie */
+    .progress-container {
+      display: none;
+      margin-top: 20px;
+    }
+    .progress-bar-wrapper {
+      width: 100%;
+      background: #ddd;
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .progress-bar {
+      height: 20px;
+      width: 0;
+      background: #35424a;
+      transition: width 0.1s linear;
+    }
+    .status-message {
+      margin-top: 10px;
+      font-weight: bold;
+      text-align: center;
+    }
+    /* Sekcja kart */
+    .cards {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 20px;
+    }
+    .card {
+      background: linear-gradient(135deg, #2c3e50, #35424a);
+      color: #fff;
+      width: 300px;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      transition: transform 0.3s;
+    }
+    .card:hover {
+      transform: scale(1.05);
+    }
+    .card h3 {
+      margin-bottom: 15px;
+    }
+    /* Sekcja Inwestycji */
+    .investments {
+      text-align: center;
+    }
+    /* Formularz Kontaktowy */
+    .contact-form {
+      max-width: 500px;
+      margin: 0 auto;
+    }
+    .contact-form textarea {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      resize: vertical;
+    }
+    /* Stopka */
+    footer {
+      background: #35424a;
+      color: #fff;
+      text-align: center;
+      padding: 15px 20px;
+      margin-top: 30px;
+    }
+    /* Modal logowania */
+    .modal {
+      display: none; 
+      position: fixed;
+      z-index: 2000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0,0,0,0.6);
+      animation: fadeInModal 0.5s;
+    }
+    @keyframes fadeInModal {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    .modal-content {
+      background: #fff;
+      margin: 10% auto;
+      padding: 20px;
+      border-radius: 8px;
+      width: 300px;
+      position: relative;
+      animation: slideIn 0.5s;
+    }
+    @keyframes slideIn {
+      from { transform: translateY(-30px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    .close {
+      position: absolute;
+      right: 10px;
+      top: 10px;
+      font-size: 24px;
+      cursor: pointer;
+      color: #333;
+    }
+    /* Responsywność */
+    @media(max-width: 768px) {
+      header {
+        flex-direction: column;
+      }
+      nav ul {
+        flex-direction: column;
+        margin-top: 10px;
+      }
+      .cards {
+        flex-direction: column;
+        align-items: center;
+      }
+    }
   </style>
-  <!-- Chart.js CDN dla wykresów -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
+  <!-- Header z nawigacją i kontrolkami -->
   <header>
-    <h1>System Bankowy - Symulacja Konta</h1>
-    <!-- Punkt 6: Personalizacja interfejsu -->
-    <select class="theme-selector" id="themeSelector">
-      <option value="#fff" selected>Jasny</option>
-      <option value="#333">Ciemny</option>
-      <option value="#f0f8ff">Alicja</option>
-    </select>
-    <!-- Punkt 1: Logowanie/Rejestracja -->
-    <button class="login-btn" id="loginBtn">Zaloguj</button>
-  </header>
-  <div class="container" id="mainContainer">
-    <div class="tabs">
-      <div class="tab active" data-tab="balance">Stan konta</div>
-      <div class="tab" data-tab="transfers">Przelewy</div>
+    <h1>Symulacja Banku</h1>
+    <nav>
+      <ul>
+        <li class="main-tab active" data-target="dashboardSection">Dashboard</li>
+        <li class="main-tab" data-target="transfersSection">Przelewy</li>
+        <li class="main-tab" data-target="cardsSection">Karty</li>
+        <li class="main-tab" data-target="investmentsSection">Inwestycje</li>
+        <li class="main-tab" data-target="contactSection">Kontakt</li>
+      </ul>
+    </nav>
+    <div class="header-controls">
+      <select class="theme-selector" id="themeSelector">
+        <option value="#fff" selected>Jasny</option>
+        <option value="#333">Ciemny</option>
+        <option value="#f0f8ff">Alicja</option>
+      </select>
+      <button class="login-btn" id="loginBtn">Zaloguj</button>
     </div>
-    <div class="content">
-      <!-- Zakładka Stan konta -->
-      <div id="balance" class="tab-content">
+  </header>
+
+  <!-- Główny kontener -->
+  <div class="container">
+    <!-- Sekcja Dashboard -->
+    <section id="dashboardSection" class="section-content active">
+      <div class="dashboard">
         <h2>Stan konta</h2>
-        <p>Posiadasz: <strong><span id="balanceAmount">1000.00</span> EUR</strong></p>
-        <!-- Punkt 4: Edycja historii (eksport historii do CSV) -->
+        <div class="balance-display">
+          Posiadasz: <span id="balanceAmount">1000.00</span> EUR
+        </div>
         <button id="exportCSV">Eksportuj historię (CSV)</button>
         <h3>Historia transakcji</h3>
-        <div class="history" id="history">
-          <!-- Historia transakcji -->
-        </div>
-        <!-- Punkt 3: Wykresy i statystyki -->
+        <div class="history" id="history"></div>
         <div class="chart-container">
           <canvas id="balanceChart"></canvas>
         </div>
       </div>
-      <!-- Zakładka Przelewy -->
-      <div id="transfers" class="tab-content" style="display:none;">
-        <div class="sub-tabs">
-          <div class="sub-tab active" data-subtab="toAccount">Na konto</div>
-          <div class="sub-tab" data-subtab="fromAccount">Z konta</div>
-        </div>
-        <!-- Sekcja: Na konto -->
-        <div id="toAccount" class="sub-content">
-          <h2>Przelew na konto</h2>
-          <p>Kwota do dodania:</p>
-          <input type="number" id="toAmount" placeholder="Wpisz kwotę" step="0.01">
-          <button id="toSend">Dodaj</button>
-        </div>
-        <!-- Sekcja: Z konta -->
-        <div id="fromAccount" class="sub-content" style="display:none;">
-          <h2>Przelew z konta</h2>
-          <!-- Punkt 7: Interakcje między użytkownikami (opcjonalna nazwa odbiorcy) -->
-          <p>Nazwa odbiorcy (opcjonalnie):</p>
-          <input type="text" id="recipientName" placeholder="Nazwa użytkownika">
-          <p>Numer konta odbiorcy:</p>
-          <input type="text" id="recipientAccount" placeholder="Numer konta">
-          <p>Kwota do przelania:</p>
-          <input type="number" id="fromAmount" placeholder="Kwota" step="0.01">
-          <!-- Dodanie opcji wyboru trybu przelewu -->
-          <p>Tryb przelewu:</p>
-          <label>
-            <input type="radio" name="transferType" value="standard" checked> Standardowy
-          </label>
-          <label>
-            <input type="radio" name="transferType" value="natychmiastowy"> Natychmiastowy
-          </label>
-          <button id="fromSend">Wyślij</button>
-          <!-- Kontener na progress bar i komunikat -->
-          <div id="transferProgressContainer" style="display:none; margin-top:20px;">
-            <div style="width: 100%; background-color: #ddd; border-radius: 3px;">
-              <div id="transferProgressBar" style="width: 0%; height: 20px; background-color: #35424a; border-radius: 3px;"></div>
-            </div>
-            <p id="transferStatusMessage" style="margin-top: 5px;"></p>
+    </section>
+
+    <!-- Sekcja Przelewy -->
+    <section id="transfersSection" class="section-content">
+      <div class="sub-tabs">
+        <div class="sub-tab active" data-target="toAccount">Na konto</div>
+        <div class="sub-tab" data-target="fromAccount">Z konta</div>
+      </div>
+      <!-- Podsekcja: Wpłata -->
+      <div id="toAccount" class="sub-content">
+        <h2>Wpłata na konto</h2>
+        <p>Kwota do dodania:</p>
+        <input type="number" id="toAmount" placeholder="Wpisz kwotę" step="0.01">
+        <button id="toSend">Dodaj</button>
+      </div>
+      <!-- Podsekcja: Przelew -->
+      <div id="fromAccount" class="sub-content" style="display:none;">
+        <h2>Przelew z konta</h2>
+        <p>Nazwa odbiorcy (opcjonalnie):</p>
+        <input type="text" id="recipientName" placeholder="Nazwa użytkownika">
+        <p>Numer konta odbiorcy:</p>
+        <input type="text" id="recipientAccount" placeholder="Numer konta">
+        <p>Kwota do przelania:</p>
+        <input type="number" id="fromAmount" placeholder="Kwota" step="0.01">
+        <p>Tryb przelewu:</p>
+        <label>
+          <input type="radio" name="transferType" value="standard" checked> Standardowy
+        </label>
+        <label>
+          <input type="radio" name="transferType" value="natychmiastowy"> Natychmiastowy
+        </label>
+        <button id="fromSend">Wyślij</button>
+        <div class="progress-container" id="transferProgressContainer">
+          <div class="progress-bar-wrapper">
+            <div class="progress-bar" id="transferProgressBar"></div>
           </div>
+          <p class="status-message" id="transferStatusMessage"></p>
         </div>
       </div>
-    </div>
+    </section>
+
+    <!-- Sekcja Kart -->
+    <section id="cardsSection" class="section-content">
+      <h2>Twoje karty</h2>
+      <div class="cards">
+        <div class="card">
+          <h3>Karta debetowa</h3>
+          <p>Numer: **** **** **** 1234</p>
+          <p>Ważna do: 12/24</p>
+        </div>
+        <div class="card">
+          <h3>Karta kredytowa</h3>
+          <p>Numer: **** **** **** 5678</p>
+          <p>Ważna do: 09/25</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Sekcja Inwestycji -->
+    <section id="investmentsSection" class="section-content">
+      <h2>Inwestycje</h2>
+      <div class="investments">
+        <p>Symulacja portfela inwestycyjnego</p>
+        <p>Wartość portfela: <strong>5,000.00</strong> EUR</p>
+        <div class="chart-container">
+          <canvas id="investmentChart"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- Sekcja Kontakt -->
+    <section id="contactSection" class="section-content">
+      <h2>Kontakt z bankiem</h2>
+      <div class="contact-form">
+        <p>Masz pytania? Napisz do nas!</p>
+        <input type="text" id="contactName" placeholder="Twoje imię">
+        <input type="email" id="contactEmail" placeholder="Twój email">
+        <textarea id="contactMessage" placeholder="Twoja wiadomość" rows="5"></textarea>
+        <button id="sendContact">Wyślij wiadomość</button>
+      </div>
+    </section>
   </div>
+
+  <!-- Stopka -->
+  <footer>
+    <p>&copy; 2025 Symulacja Banku. Wszelkie prawa zastrzeżone.</p>
+  </footer>
 
   <!-- Modal logowania -->
   <div id="loginModal" class="modal">
@@ -256,20 +444,21 @@
   </div>
 
   <script>
-    // Globalne zmienne
+    // Globalne zmienne symulacji
     let balance = 1000.00;
-    let transactions = []; // przechowuje transakcje dla wykresu i eksportu CSV
-    let chart; // instancja Chart.js
+    let transactions = [];
+    let chart; // wykres salda
+    let investmentChart; // wykres inwestycji
 
     const balanceAmountElem = document.getElementById('balanceAmount');
     const historyElem = document.getElementById('history');
 
-    // Aktualizacja wyświetlania stanu konta
+    // Aktualizacja salda na stronie
     function updateBalance() {
       balanceAmountElem.textContent = balance.toFixed(2);
     }
 
-    // Dodaj transakcję do historii i tablicy
+    // Dodanie transakcji do historii i aktualizacja wykresu
     function addTransaction(description, amount) {
       const p = document.createElement('p');
       p.textContent = description;
@@ -278,7 +467,7 @@
       updateChart();
     }
 
-    // Eksport historii do CSV (punkt 4)
+    // Eksport historii do CSV
     document.getElementById('exportCSV').addEventListener('click', () => {
       let csvContent = "data:text/csv;charset=utf-8,Timestamp,Opis,Kwota\r\n";
       transactions.forEach(tx => {
@@ -293,27 +482,27 @@
       document.body.removeChild(link);
     });
 
-    // Obsługa zakładek
-    const tabs = document.querySelectorAll('.tab');
-    tabs.forEach(tab => {
+    // Obsługa głównych zakładek
+    const mainTabs = document.querySelectorAll('.main-tab');
+    mainTabs.forEach(tab => {
       tab.addEventListener('click', () => {
-        tabs.forEach(t => t.classList.remove('active'));
+        mainTabs.forEach(t => t.classList.remove('active'));
         tab.classList.add('active');
-        const target = tab.getAttribute('data-tab');
-        document.querySelectorAll('.tab-content').forEach(content => {
-          content.style.display = 'none';
+        const target = tab.getAttribute('data-target');
+        document.querySelectorAll('.section-content').forEach(section => {
+          section.classList.remove('active');
         });
-        document.getElementById(target).style.display = 'block';
+        document.getElementById(target).classList.add('active');
       });
     });
 
-    // Obsługa sub-zakładek w "Przelewy"
+    // Obsługa sub-zakładek w sekcji Przelewy
     const subTabs = document.querySelectorAll('.sub-tab');
     subTabs.forEach(subTab => {
       subTab.addEventListener('click', () => {
         subTabs.forEach(st => st.classList.remove('active'));
         subTab.classList.add('active');
-        const target = subTab.getAttribute('data-subtab');
+        const target = subTab.getAttribute('data-target');
         document.querySelectorAll('.sub-content').forEach(content => {
           content.style.display = 'none';
         });
@@ -321,7 +510,7 @@
       });
     });
 
-    // Funkcja "Na konto" – dodaje kwotę do stanu konta
+    // Funkcja "Na konto" - wpłata na konto
     document.getElementById('toSend').addEventListener('click', () => {
       const amountInput = document.getElementById('toAmount');
       const amount = parseFloat(amountInput.value);
@@ -335,7 +524,7 @@
       amountInput.value = "";
     });
 
-    // Funkcja "Z konta" – odejmuje kwotę od salda i rejestruje przelew z animowanym progress barem
+    // Funkcja "Z konta" - przelew z animacją progress baru
     document.getElementById('fromSend').addEventListener('click', () => {
       const recipientNameInput = document.getElementById('recipientName');
       const recipientAccountInput = document.getElementById('recipientAccount');
@@ -351,14 +540,14 @@
         return;
       }
       
-      // Odczytaj wybrany tryb przelewu
+      // Odczytanie trybu przelewu
       const transferType = document.querySelector('input[name="transferType"]:checked').value;
       
-      // Wyłącz przycisk, aby zapobiec wielokrotnym kliknięciom
+      // Blokada przycisku aby zapobiec wielokrotnym kliknięciom
       const sendButton = document.getElementById('fromSend');
       sendButton.disabled = true;
       
-      // Pokaż kontener progress baru i ustaw początkowy stan
+      // Pokazanie progress baru
       const progressContainer = document.getElementById('transferProgressContainer');
       const progressBar = document.getElementById('transferProgressBar');
       const statusMessage = document.getElementById('transferStatusMessage');
@@ -367,15 +556,15 @@
       statusMessage.textContent = "Przesyłanie...";
       
       let progress = 0;
-      const intervalTime = 100; // 100ms
-      const progressIncrement = 100 / (5000 / intervalTime); // 5 sekund animacji
+      const intervalTime = 100; // co 100ms
+      const progressIncrement = 100 / (5000 / intervalTime); // animacja 5 sekund
       const interval = setInterval(() => {
         progress += progressIncrement;
         if (progress >= 100) {
           progressBar.style.width = "100%";
           clearInterval(interval);
           
-          // Po zakończeniu progress baru przetwarzamy przelew:
+          // Po zakończeniu progress baru przetwarzamy przelew
           let recipientName = recipientNameInput.value.trim();
           if (!recipientName) {
             recipientName = "@user" + Math.floor(Math.random() * 1000);
@@ -386,64 +575,27 @@
           }
           balance -= amount;
           updateBalance();
-          addTransaction(`Przelew z konta: -${amount.toFixed(2)} EUR do ${recipientAccount} (${recipientName})`, -amount);
+          addTransaction(`Przelew: -${amount.toFixed(2)} EUR do ${recipientAccount} (${recipientName})`, -amount);
           
-          // Wyświetl komunikat w zależności od trybu przelewu
+          // Wyświetlenie komunikatu zależnie od trybu
           if (transferType === "standard") {
-            statusMessage.textContent = "Wysłano! Środki Przyjdą w ciągu 1-3 dni roboczych";
+            statusMessage.textContent = "Wysłano! Środki przyjdą w ciągu 1-3 dni roboczych.";
           } else {
-            statusMessage.textContent = "Wysłano! Środki Przyjdą w ciągu 5-30 minut";
+            statusMessage.textContent = "Wysłano! Środki przyjdą w ciągu 5-30 minut.";
           }
           
-          // Po kilku sekundach ukrywamy pasek i odblokowujemy przycisk
+          // Po krótkim czasie ukrywamy progress bar i odblokowujemy przycisk
           setTimeout(() => {
             progressContainer.style.display = "none";
             sendButton.disabled = false;
           }, 2000);
-          
         } else {
           progressBar.style.width = progress + "%";
         }
       }, intervalTime);
     });
 
-    updateBalance();
-
-    // Punkt 6: Personalizacja interfejsu – zmiana motywu
-    const themeSelector = document.getElementById('themeSelector');
-    const mainContainer = document.getElementById('mainContainer');
-    themeSelector.addEventListener('change', () => {
-      const themeColor = themeSelector.value;
-      mainContainer.style.background = themeColor;
-      mainContainer.style.color = (themeColor === "#333") ? "#fff" : "#000";
-    });
-
-    // Punkt 1: Logowanie/Rejestracja – modal logowania
-    const loginBtn = document.getElementById('loginBtn');
-    const loginModal = document.getElementById('loginModal');
-    const modalClose = document.getElementById('modalClose');
-    loginBtn.addEventListener('click', () => {
-      loginModal.style.display = "block";
-    });
-    modalClose.addEventListener('click', () => {
-      loginModal.style.display = "none";
-    });
-    window.addEventListener('click', (e) => {
-      if (e.target == loginModal) {
-        loginModal.style.display = "none";
-      }
-    });
-    document.getElementById('loginSubmit').addEventListener('click', () => {
-      const username = document.getElementById('username').value.trim();
-      if (username) {
-        loginBtn.textContent = `Witaj, ${username}`;
-        loginModal.style.display = "none";
-      } else {
-        alert("Wprowadź nazwę użytkownika!");
-      }
-    });
-
-    // Punkt 3: Wykresy i statystyki – Chart.js do wizualizacji salda
+    // Aktualizacja wykresu salda
     const ctx = document.getElementById('balanceChart').getContext('2d');
     function updateChart() {
       let runningBalance = 1000.00;
@@ -488,6 +640,78 @@
       }
     }
     updateChart();
+
+    // Inicjalizacja wykresu inwestycji (dane przykładowe)
+    const invCtx = document.getElementById('investmentChart').getContext('2d');
+    investmentChart = new Chart(invCtx, {
+      type: 'bar',
+      data: {
+        labels: ["Akcje", "Obligacje", "Nieruchomości"],
+        datasets: [{
+          label: 'Wartość (EUR)',
+          data: [3000, 1500, 500],
+          backgroundColor: ['rgba(54, 162, 235, 0.6)', 'rgba(255, 206, 86, 0.6)', 'rgba(75, 192, 192, 0.6)'],
+          borderColor: ['rgba(54, 162, 235, 1)', 'rgba(255, 206, 86, 1)', 'rgba(75, 192, 192, 1)'],
+          borderWidth: 1
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: { beginAtZero: true }
+        }
+      }
+    });
+
+    // Obsługa zmiany motywu
+    const themeSelector = document.getElementById('themeSelector');
+    const container = document.querySelector('.container');
+    themeSelector.addEventListener('change', () => {
+      const themeColor = themeSelector.value;
+      container.style.background = themeColor;
+      container.style.color = (themeColor === "#333") ? "#fff" : "#333";
+    });
+
+    // Obsługa logowania (modal)
+    const loginBtn = document.getElementById('loginBtn');
+    const loginModal = document.getElementById('loginModal');
+    const modalClose = document.getElementById('modalClose');
+    loginBtn.addEventListener('click', () => {
+      loginModal.style.display = "block";
+    });
+    modalClose.addEventListener('click', () => {
+      loginModal.style.display = "none";
+    });
+    window.addEventListener('click', (e) => {
+      if (e.target == loginModal) {
+        loginModal.style.display = "none";
+      }
+    });
+    document.getElementById('loginSubmit').addEventListener('click', () => {
+      const username = document.getElementById('username').value.trim();
+      if (username) {
+        loginBtn.textContent = `Witaj, ${username}`;
+        loginModal.style.display = "none";
+      } else {
+        alert("Wprowadź nazwę użytkownika!");
+      }
+    });
+
+    // Obsługa formularza kontaktowego
+    document.getElementById('sendContact').addEventListener('click', () => {
+      const name = document.getElementById('contactName').value.trim();
+      const email = document.getElementById('contactEmail').value.trim();
+      const message = document.getElementById('contactMessage').value.trim();
+      if (!name || !email || !message) {
+        alert("Proszę wypełnić wszystkie pola formularza!");
+        return;
+      }
+      alert("Dziękujemy za wiadomość! Skontaktujemy się z Tobą wkrótce.");
+      document.getElementById('contactName').value = "";
+      document.getElementById('contactEmail').value = "";
+      document.getElementById('contactMessage').value = "";
+    });
   </script>
 </body>
 </html>
